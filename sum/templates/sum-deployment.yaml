@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sum
+  name: sum
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sum
+  template:
+    metadata:
+      labels:
+        app: sum
+    spec:
+      containers:
+        - image: "public.ecr.aws/z8c2k6d0/sum:{{ .Chart.AppVersion }}"
+          name: sum
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000

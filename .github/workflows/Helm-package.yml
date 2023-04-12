@@ -1,0 +1,41 @@
+name: Helm Package CI
+
+on:
+
+  workflow_dispatch:
+  
+  push:
+    branches: [ "main" ]
+    paths:
+    - 'sum/**'
+  
+  pull_request:
+    branches: [ "main" ]
+    paths: 
+    - 'sum/**'
+    
+jobs:
+  
+  build:
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+    
+    - uses: actions/checkout@v3
+    
+    - name: Login into AWS
+      run:  aws configure set aws_access_key_id "AKIAZSHWKCDQZCNP4M6G" && aws configure set aws_secret_access_key ${{ secrets.AWS_KEY }} && aws configure set region "us-east-1" && aws configure set output "None"
+    
+    - name: Login into ECR
+      run: aws ecr-public get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin public.ecr.aws
+    
+    - name: Generate Build ID
+      run: echo "ID=$(date +%s)" >> $GITHUB_ENV
+    
+    - name: Build Helm Package
+      run: helm package ./sum --app-version 0.1.0-image --version 0.1.0-$ID
+    
+    - name: Push the Helm Package
+      run: helm push ./sum-* oci://public.ecr.aws/z8c2k6d0
+    
